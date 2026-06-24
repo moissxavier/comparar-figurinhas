@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comparador de Figurinhas da Copa</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <div class="header-icon">⚽</div>
+      <h1>Comparador de Figurinhas</h1>
+      <p class="header-subtitle">Descubra quais repetidas suas a outra pessoa precisa</p>
+    </header>
+
+    <main class="app-main">
+
+      <!-- Input Section -->
+      <section class="inputs-section">
+
+        <div class="input-card">
+          <div class="input-card-header">
+            <span class="input-card-icon">🔁</span>
+            <label for="my-repeats" class="input-card-title">Minhas Repetidas</label>
+          </div>
+          <p class="input-card-hint">Cole aqui sua lista de figurinhas repetidas</p>
+          <textarea
+            id="my-repeats"
+            class="sticker-textarea"
+            placeholder="Exemplos aceitos:&#10;MEX1, MEX2, MEX3&#10;MEX: 1, 2, 3&#10;MEX: 2-6-17&#10;BRA 5, ARG 10&#10;FWC1&#10;CC14, MEX20, BRA8"
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+          ></textarea>
+          <div class="textarea-counter">
+            <span id="my-repeats-count">0 figurinhas detectadas</span>
+          </div>
+        </div>
+
+        <div class="input-card">
+          <div class="input-card-header">
+            <span class="input-card-icon">❓</span>
+            <label for="their-needs" class="input-card-title">Figurinhas que Faltam para a Outra Pessoa</label>
+          </div>
+          <p class="input-card-hint">Cole aqui a lista de figurinhas que a outra pessoa precisa</p>
+          <textarea
+            id="their-needs"
+            class="sticker-textarea"
+            placeholder="Exemplos aceitos:&#10;MEX1, MEX2, MEX3&#10;MEX: 1, 2, 3&#10;MEX: 2-6-17&#10;BRA 5, ARG 10&#10;FWC1&#10;CC14, MEX20, BRA8"
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+          ></textarea>
+          <div class="textarea-counter">
+            <span id="their-needs-count">0 figurinhas detectadas</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Action Buttons -->
+      <section class="actions-section">
+        <button id="btn-compare" class="btn btn-primary">
+          <span class="btn-icon">🔍</span> Comparar
+        </button>
+        <button id="btn-clear" class="btn btn-secondary">
+          <span class="btn-icon">🗑️</span> Limpar
+        </button>
+      </section>
+
+      <!-- Results Section -->
+      <section id="results-section" class="results-section hidden">
+
+        <div class="results-header">
+          <h2 class="results-title">
+            <span class="results-icon">✅</span>
+            Figurinhas que você pode dar
+          </h2>
+          <div class="results-meta">
+            <span id="results-total" class="results-badge"></span>
+          </div>
+        </div>
+
+        <div id="results-empty" class="results-empty hidden">
+          <span class="results-empty-icon">😕</span>
+          <p>Nenhuma figurinha em comum encontrada.</p>
+          <p class="results-empty-hint">Suas repetidas não coincidem com o que a outra pessoa precisa.</p>
+        </div>
+
+        <div id="results-list-wrapper" class="results-list-wrapper hidden">
+          <div id="results-list" class="results-list"></div>
+        </div>
+
+        <div id="results-actions" class="results-actions hidden">
+          <button id="btn-copy" class="btn btn-copy">
+            <span class="btn-icon">📋</span> Copiar resultados
+          </button>
+          <span id="copy-feedback" class="copy-feedback hidden">✔ Copiado!</span>
+        </div>
+
+      </section>
+
+    </main>
+
+
+
+  </div>
+
+  <script src="js/parser.js"></script>
+  <script src="js/comparator.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
