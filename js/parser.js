@@ -60,6 +60,9 @@ const StickerParser = (() => {
   function normalise(raw) {
     return raw
       .toUpperCase()
+      // Remove quantity annotations like (1x), (2x), (10x) — they are not
+      // sticker numbers and would be misread as such.
+      .replace(/\(\d+X\)/g, '')
       // Collapse multiple spaces/tabs to one space
       .replace(/[ \t]+/g, ' ')
       // Ensure every comma or semicolon is followed by a space
