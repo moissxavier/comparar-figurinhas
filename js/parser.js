@@ -60,15 +60,33 @@ const StickerParser = (() => {
   function normalise(raw) {
     return raw
       .toUpperCase()
-      // Remove quantity annotations like (1x), (2x), (10x)
-      .replace(/\(\d+X\)/g, '')
-      // Remove emojis and other non-ASCII symbols (flags, icons, etc.)
-      // This covers: emoji, flag sequences, dingbats, symbols
+      // Remove section header lines that contain page range markers "· pg."
+      // e.g. "*Copa 2026 (FWC1–FWC4)* · pg. 1"  "🇿🇦 *RSA* · pg. 10-11"
+      // These lines may contain sticker-like codes in range descriptions
+      // but are NOT actual sticker entries.
+      .replace(/^.*·\s*PG\..*$/gm, '')
+      // Remove Markdown bold markers
+      .replace(/\*/g, '')
+      // Remove decorative separator lines (─────, =====, etc.)
+      .replace(/^[─—═•·\s\-]+$/gm, '')
+      // Remove quantity annotations: (x1) (x2) (1x) (2x)
+      .replace(/\([Xx]\d+\)/g, '')
+      .replace(/\(\d+[Xx]\)/g, '')
+      // Remove emojis and non-ASCII symbols (flag sequences, icons, etc.)
       .replace(/[\u{1F000}-\u{1FFFF}|\u{2600}-\u{27FF}|\u{FE00}-\u{FEFF}|\u{1F1E0}-\u{1F1FF}]/gu, '')
-      // Collapse multiple spaces/tabs to one space
+      // Replace en-dash / em-dash with hyphen
+      .replace(/[–—]/g, '-')
+      // Collapse spaces/tabs
       .replace(/[ \t]+/g, ' ')
-      // Ensure every comma or semicolon is followed by a space
+      // Normalize comma/semicolon separators
       .replace(/[,;]+/g, ', ')
+      // Drop lines with no actionable sticker content.
+      // A useful line must have either:
+      //   - a fully-formed code (2-5 letters immediately followed by 1-3 digits), OR
+      //   - a prefix followed by colon/space then 1-3 digit numbers (not 4+ digit years)
+      .split('\n')
+      .filter(line => /\b[A-Z]{2,5}\d{1,3}\b/.test(line) || /\b[A-Z]{2,5}\s*[:]\s*\d{1,3}/.test(line) || /\b[A-Z]{2,5}\s+\d{1,3}(\s|,|-|$)/.test(line))
+      .join('\n')
       .trim();
   }
 
