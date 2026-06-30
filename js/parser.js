@@ -60,9 +60,11 @@ const StickerParser = (() => {
   function normalise(raw) {
     return raw
       .toUpperCase()
-      // Remove quantity annotations like (1x), (2x), (10x) — they are not
-      // sticker numbers and would be misread as such.
+      // Remove quantity annotations like (1x), (2x), (10x)
       .replace(/\(\d+X\)/g, '')
+      // Remove emojis and other non-ASCII symbols (flags, icons, etc.)
+      // This covers: emoji, flag sequences, dingbats, symbols
+      .replace(/[\u{1F000}-\u{1FFFF}|\u{2600}-\u{27FF}|\u{FE00}-\u{FEFF}|\u{1F1E0}-\u{1F1FF}]/gu, '')
       // Collapse multiple spaces/tabs to one space
       .replace(/[ \t]+/g, ' ')
       // Ensure every comma or semicolon is followed by a space
