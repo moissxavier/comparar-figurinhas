@@ -37,6 +37,8 @@ const StickerParser = (() => {
     'TO', 'OF', 'IN', 'AT', 'BY',
     // URL fragments (from app share links)
     'HTTP', 'HTTPS', 'WWW',
+    // Page markers (e.g. *PAG* 10-11)
+    'PAG', 'SOL', 'SOM',
   ]);
 
   // -------------------------------------------------------------------------
@@ -65,6 +67,13 @@ const StickerParser = (() => {
       // These lines may contain sticker-like codes in range descriptions
       // but are NOT actual sticker entries.
       .replace(/^.*·\s*PG\..*$/gm, '')
+      // Handle "*PAG* XX-XX" page markers (with or without spaces, with or without
+      // a newline after). They appear inline in a single long string like:
+      // "*PAG* 10-11 RSA 3*PAG* 12-13KOR 9-10"
+      // Strategy: replace the PAG marker AND the page-range numbers that follow it
+      // with a newline, so the real sticker entries get split into their own lines.
+      // Handles cases where digits are glued to the next prefix: "12-13KOR" -> "\nKOR"
+      .replace(/\*?PAG\*?\s*\d{1,3}-\d{1,3}/g, '\n')
       // Remove Markdown bold markers
       .replace(/\*/g, '')
       // Remove decorative separator lines (─────, =====, etc.)
@@ -72,8 +81,26 @@ const StickerParser = (() => {
       // Remove quantity annotations: (x1) (x2) (1x) (2x)
       .replace(/\([Xx]\d+\)/g, '')
       .replace(/\(\d+[Xx]\)/g, '')
+      // Split inline blocks that use the pattern "PREFIX<emoji>: nums" glued together.
+      // e.g. "RSA🇿🇦: 3,5MEX🇲🇽: 4" → insert newline before each PREFIX+non-ASCII+colon block.
+      // We do this BEFORE stripping emojis so we can detect the boundary.
+      // Step A: digit immediately followed by PREFIX+non-ASCII+colon → newline before PREFIX
+      .replace(/(\d)([A-Z]{2,5})[^\x00-\x7F]*\s*:/g, (m, d, p) => d + '\n' + p + ':')
+      // Step B: known album prefix preceded by a letter (e.g. "ALBUMFWC⭐:") → newline before prefix.
+      // Build a pattern from ALBUM_ORDER so we only split on real sticker prefixes.
+      .replace(new RegExp('([A-Z])(' + ['FWC','MEX','RSA','KOR','CZE','CAN','BIH','QAT','SUI','BRA','MAR','HAI','SCO','USA','PAR','AUS','TUR','GER','CUW','CIV','ECU','NED','JPN','SWE','TUN','BEL','EGY','IRN','NZL','ESP','CPV','KSA','URU','FRA','SEN','IRQ','NOR','ARG','ALG','AUT','JOR','POR','COD','UZB','COL','ENG','CRO','GHA','PAN','CC'].join('|') + ')([^\\x00-\\x7F])', 'g'), (m, prev, prefix, emoji) => prev + '\n' + prefix + emoji)
+      // Step C: any PREFIX followed by one or more non-ASCII chars then colon → newline before PREFIX.
+      .replace(/(?<![A-Z])([A-Z]{2,5})[^\x00-\x7F\s]+\s*:/g, (m, prefix) => '\n' + prefix + ':')
       // Remove emojis and non-ASCII symbols (flag sequences, icons, etc.)
-      .replace(/[\u{1F000}-\u{1FFFF}|\u{2600}-\u{27FF}|\u{FE00}-\u{FEFF}|\u{1F1E0}-\u{1F1FF}]/gu, '')
+      // Also removes subdivision flag tag sequences (U+E0000–U+E007F) used by
+      // Scotland 🏴󠁧󠁢󠁳󠁣󠁴󠁿 and England 🏴󠁧󠁢󠁥󠁮󠁧󠁿 flags.
+      .replace(/[\u{1F000}-\u{1FFFF}|\u{2600}-\u{27FF}|\u{FE00}-\u{FEFF}|\u{1F1E0}-\u{1F1FF}|\u{E0000}-\u{E007F}]/gu, '')
+      // Strip URLs and trailing noise that may be glued to the last number of a line
+      // e.g. "16,17BAIXAR:HTTPS://..." → "16,17"
+      .replace(/\d+[A-Z][A-Z0-9:\/\.]+/g, m => m.match(/^\d+/)[0])
+      // Normalize leading zeros in numbers: "00" → "0", "01" → "1", "09" → "9"
+      // so sticker codes like FWC00 become FWC0, FWC01 becomes FWC1, etc.
+      .replace(/\b0+(\d)/g, '$1')
       // Replace en-dash / em-dash with hyphen
       .replace(/[–—]/g, '-')
       // Collapse spaces/tabs
